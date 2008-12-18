@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>Module: ActiveRecord::Acts::EavModel</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+  <meta http-equiv="Content-Script-Type" content="text/javascript" />
+  <link rel="stylesheet" href="../../.././rdoc-style.css" type="text/css" media="screen" />
+  <script type="text/javascript">
+  // <![CDATA[
+
+  function popupCode( url ) {
+    window.open(url, "Code", "resizable=yes,scrollbars=yes,toolbar=no,status=no,height=150,width=400")
+  }
+
+  function toggleCode( id ) {
+    if ( document.getElementById )
+      elem = document.getElementById( id );
+    else if ( document.all )
+      elem = eval( "document.all." + id );
+    else
+      return false;
+
+    elemStyle = elem.style;
+    
+    if ( elemStyle.display != "block" ) {
+      elemStyle.display = "block"
+    } else {
+      elemStyle.display = "none"
+    }
+
+    return true;
+  }
+  
+  // Make codeblocks hidden by default
+  document.writeln( "<style type=\"text/css\">div.method-source-code { display: none }</style>" )
+  
+  // ]]>
+  </script>
+
+</head>
+<body>
+
+
+
+    <div id="classHeader">
+        <table class="header-table">
+        <tr class="top-aligned-row">
+          <td><strong>Module</strong></td>
+          <td class="class-name-in-header">ActiveRecord::Acts::EavModel</td>
+        </tr>
+        <tr class="top-aligned-row">
+            <td><strong>In:</strong></td>
+            <td>
+                <a href="../../../files/lib/acts_as_eav_model_rb.html">
+                lib/acts_as_eav_model.rb
+                </a>
+        <br />
+            </td>
+        </tr>
+
+        </table>
+    </div>
+  <!-- banner header -->
+
+  <div id="bodyContent">
+
+
+
+  <div id="contextContent">
+
+    <div id="description">
+      <p>
+ActsAsEavModel allow for the Entity-attribute-value model (EAV), also known
+as object-attribute-value model and open schema on any of your ActiveRecord
+models.
+</p>
+<h1>What is Entity-attribute-value model?</h1>
+<p>
+Entity-attribute-value model (EAV) is a data model that is used in
+circumstances where the number of attributes (properties, parameters) that
+can be used to describe a thing (an &quot;entity&quot; or
+&quot;object&quot;) is potentially very vast, but the number that will
+actually apply to a given entity is relatively modest.
+</p>
+<h1>Typical Problem</h1>
+<p>
+A good example of this is where you need to store lots (possible hundreds)
+of optional attributes on an object. My typical reference example is when
+you have a User object. You want to store the user&#8216;s preferences
+between sessions. Every search, sort, etc in your application you want to
+keep track of so when the user visits that section of the application again
+you can simply restore the display to how it was.
+</p>
+<p>
+So your controller might have:
+</p>
+<pre>
+  Project.find :all, :conditions =&gt; current_user.project_search,
+    :order =&gt; current_user.project_order
+</pre>
+<p>
+But there could be hundreds of these little attributes that you really
+don&#8216;t want to store directly on the user object. It would make your
+table have too many columns so it would be too much of a pain to deal with.
+Also there might be performance problems. So instead you might do something
+like this:
+</p>
+<pre>
+  class User &lt; ActiveRecord::Base
+    has_many :preferences
+  end
+
+  class Preferences &lt; ActiveRecord::Base
+    belongs_to :user
+  end
+</pre>
+<p>
+Now simply give the Preference model a &quot;name&quot; and
+&quot;value&quot; column and you are set.&#8230;. except this is now too
+complicated. To retrieve a attribute you will need to do something like:
+</p>
+<pre>
+  Project.find :all,
+    :conditions =&gt; current_user.preferences.find_by_name('project_search').value,
+    :order =&gt; current_user.preferences.find_by_name('project_order').value
+</pre>
+<p>
+Sure you could fix this through a few methods on your model. But what about
+saving?
+</p>
+<pre>
+  current_user.preferences.create :name =&gt; 'project_search',
+    :value =&gt; &quot;lastname LIKE 'jones%'&quot;
+  current_user.preferences.create :name =&gt; 'project_order',
+    :value =&gt; &quot;name&quot;
+</pre>
+<p>
+Again this seems to much. Again we could add some methods to our model to
+make this simpler but do we want to do this on every model. NO! So instead
+we use this plugin which does everything for us.
+</p>
+<h1>Capabilities</h1>
+<p>
+The ActsAsEavModel plugin is capable of modeling this problem in a
+intuitive way. Instead of having to deal with a related model you treat all
+attributes (both on the model and related) as if they are all on the model.
+The plugin will try to save all attributes to the model (normal
+ActiveRecord behaviour) but if there is no column for an attribute it will
+try to save it to a related model whose purpose is to store these many
+sparsly populated attributes.
+</p>
+<p>
+The main design goals are:
+</p>
+<ul>
+<li>Have the eav attributes feel like normal attributes. Simple gets and sets
+will add and remove records from the related model.
+
+</li>
+<li>Allow for more than one related model. So for example on my User model I
+might have some eav behavior going into a contact_info table while others
+are going in a user_preferences table.
+
+</li>
+<li>Allow a model to determine what a valid eav attribute is for a given
+related model so our model still can generate a NoMethodError.
+
+</li>
+</ul>
+
+    </div>
+
+
+   </div>
+
+
+  </div>
+
+
+    <!-- if includes -->
+
+    <div id="section">
+
+    <div id="class-list">
+      <h3 class="section-bar">Classes and Modules</h3>
+
+      Module <a href="EavModel/ClassMethods.html" class="link">ActiveRecord::Acts::EavModel::ClassMethods</a><br />
+Module <a href="EavModel/InstanceMethods.html" class="link">ActiveRecord::Acts::EavModel::InstanceMethods</a><br />
+
+    </div>
+
+
+
+
+      
+
+
+    <!-- if method_list -->
+
+
+  </div>
+
+
+<div id="validator-badges">
+  <p><small><a href="http://validator.w3.org/check/referer">[Validate]</a></small></p>
+</div>
+
+</body>
+</html>

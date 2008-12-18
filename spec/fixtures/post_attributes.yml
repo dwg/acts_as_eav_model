@@ -1,0 +1,15 @@
+post_one_comment:
+  id: 1
+  post_id: 1
+  name: comment
+  value: Foo Bar Industries gets two thumbs up
+post_one_intro:
+  id: 2
+  post_id: 1
+  name: intro
+  value: We deliver quality foobars to consumers nationwide and around the globe
+post_one_teaser:
+  id: 3
+  post_id: 1
+  name: teaser
+  value: Coming October 7, the foobarantator

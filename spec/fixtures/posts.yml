@@ -1,0 +1,9 @@
+one:
+  id: 1
+  title: Hello World
+  body: This is my first blog post. Great!
+  
+two:
+  id: 2
+  title: Following up from my first post.
+  body: I'm working on my first plugin today.

@@ -1,0 +1,10 @@
+marcus_aim:
+  id: 1
+  contact_id: 1
+  name: aim
+  value: marcus.wyatt
+marcus_phone:
+  id: 2
+  contact_id: 1
+  name: phone
+  value: 021 356 0986

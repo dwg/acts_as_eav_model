@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>File: SPECDOC</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+  <meta http-equiv="Content-Script-Type" content="text/javascript" />
+  <link rel="stylesheet" href=".././rdoc-style.css" type="text/css" media="screen" />
+  <script type="text/javascript">
+  // <![CDATA[
+
+  function popupCode( url ) {
+    window.open(url, "Code", "resizable=yes,scrollbars=yes,toolbar=no,status=no,height=150,width=400")
+  }
+
+  function toggleCode( id ) {
+    if ( document.getElementById )
+      elem = document.getElementById( id );
+    else if ( document.all )
+      elem = eval( "document.all." + id );
+    else
+      return false;
+
+    elemStyle = elem.style;
+    
+    if ( elemStyle.display != "block" ) {
+      elemStyle.display = "block"
+    } else {
+      elemStyle.display = "none"
+    }
+
+    return true;
+  }
+  
+  // Make codeblocks hidden by default
+  document.writeln( "<style type=\"text/css\">div.method-source-code { display: none }</style>" )
+  
+  // ]]>
+  </script>
+
+</head>
+<body>
+
+
+
+  <div id="fileHeader">
+    <h1>SPECDOC</h1>
+    <table class="header-table">
+    <tr class="top-aligned-row">
+      <td><strong>Path:</strong></td>
+      <td>SPECDOC
+      </td>
+    </tr>
+    <tr class="top-aligned-row">
+      <td><strong>Last Update:</strong></td>
+      <td>Thu Dec 18 13:47:02 +1300 2008</td>
+    </tr>
+    </table>
+  </div>
+  <!-- banner header -->
+
+  <div id="bodyContent">
+
+
+
+  <div id="contextContent">
+
+    <div id="description">
+      <p>
+ActiveRecord Model annotated with &#8216;has_eav_behavior&#8217; with no
+options in declaration
+</p>
+<ul>
+<li>should have many attributes
+
+</li>
+<li>should create new attribute on save
+
+</li>
+<li>should delete attribute
+
+</li>
+<li>should write eav attributes to attributes table
+
+</li>
+<li>should return nil when attribute does not exist
+
+</li>
+<li>should use method missing to make attribute seem as native property
+
+</li>
+<li>should read attributes using subscript notation
+
+</li>
+<li>should read the attribute when invoking &#8216;read_attribute&#8216;
+
+</li>
+</ul>
+<p>
+ActiveRecord Model annotated with &#8216;has_eav_behavior&#8217; with
+options in declaration
+</p>
+<ul>
+<li>should be &#8216;has_many&#8217; association on both sides
+
+</li>
+<li>should only allow restricted fields when specified (:fields =&gt; %w(phone
+aim icq))
+
+</li>
+<li>should raise &#8216;NoMethodError&#8217; when attribute not in
+&#8216;eav_attributes&#8217; method array
+
+</li>
+<li>should raise &#8216;NoMethodError&#8217; when attribute does not satisfy
+&#8216;is_eav_attribute?&#8217; method
+
+</li>
+</ul>
+<p>
+Validations on ActiveRecord Model annotated with
+&#8216;has_eav_behavior&#8216;
+</p>
+<ul>
+<li>should execute as normal (validates_presence_of)
+
+</li>
+</ul>
+<p>
+Finished in 0.239663 seconds
+</p>
+<p>
+13 examples, 0 failures
+</p>
+
+    </div>
+
+
+   </div>
+
+
+  </div>
+
+
+    <!-- if includes -->
+
+    <div id="section">
+
+
+
+
+
+      
+
+
+    <!-- if method_list -->
+
+
+  </div>
+
+
+<div id="validator-badges">
+  <p><small><a href="http://validator.w3.org/check/referer">[Validate]</a></small></p>
+</div>
+
+</body>
+</html>

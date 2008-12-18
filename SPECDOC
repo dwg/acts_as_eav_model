@@ -1,0 +1,23 @@
+
+ActiveRecord Model annotated with 'has_eav_behavior' with no options in declaration
+- should have many attributes
+- should create new attribute on save
+- should delete attribute
+- should write eav attributes to attributes table
+- should return nil when attribute does not exist
+- should use method missing to make attribute seem as native property
+- should read attributes using subscript notation
+- should read the attribute when invoking 'read_attribute'
+
+ActiveRecord Model annotated with 'has_eav_behavior' with options in declaration
+- should be 'has_many' association on both sides
+- should only allow restricted fields when specified (:fields => %w(phone aim icq))
+- should raise 'NoMethodError' when attribute not in 'eav_attributes' method array
+- should raise 'NoMethodError' when attribute does not satisfy 'is_eav_attribute?' method
+
+Validations on ActiveRecord Model annotated with 'has_eav_behavior'
+- should execute as normal (validates_presence_of)
+
+Finished in 0.239663 seconds
+
+13 examples, 0 failures

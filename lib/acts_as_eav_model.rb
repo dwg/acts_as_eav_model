@@ -108,7 +108,7 @@ module ActiveRecord # :nodoc:
         #   model name prepended to "Attribute". So for a "User" model the class
         #   name would be "UserAttribute". The class can actually exist (in that
         #   case the model file will be loaded through Rails dependency system) or
-          #   if it does not exist a basic model will be dynamically defined for you.
+        #   if it does not exist a basic model will be dynamically defined for you.
         #   This allows you to implement custom methods on the related class by
         #   simply defining the class manually.
         # * <tt>table_name</tt>:
@@ -127,6 +127,30 @@ module ActiveRecord # :nodoc:
         #   The field which stores the name of the attribute in the related object
         # * <tt>value_field</tt>:
         #   The field that stores the value in the related object
+        # * <tt>meta_columns</tt>:
+        #   Additional columns on the related model. Allows you to define metadata
+        #   on individual attributes. Examples:
+        #  class User < ActiveRecord::Base
+        #    has_eav_behavior :meta_columns=>{:private=>{:type=>:boolean, :default=>false}}
+        #  end
+        #
+        #  user = User.first
+        #  user.email = 'user@example.com'
+        #  user.email_private # => false
+        #  user.email_private = true
+        #  user.save # will save a UserAttribute record with :name=>'email', :value=>'user@example.com', :private=>true
+        #
+        #  class User < ActiveRecord::Base
+        #    has_eav_behavior :meta_columns=>{:unit=>:virtual}
+        #  end
+        #
+        #  class UserAttribute < ActiveRecord::Base
+        #    has_one :unit
+        #  end
+        #
+        #  user = User.first
+        #  user.height = 5
+        #  user.height_unit = Unit.find_by_name('feet')
         # * <tt>fields</tt>:
         #   A list of fields that are valid eav attributes. By default
         #   this is "nil" which means that all field are valid. Use this option if
@@ -209,6 +233,7 @@ module ActiveRecord # :nodoc:
           options[:value_field] ||= 'value'
           options[:fields].collect! {|f| f.to_s} unless options[:fields].nil?
           options[:parent] = self.class_name
+          options[:meta_columns] ||= {}
 
           # Init option storage if necessary
           cattr_accessor :eav_options
@@ -262,6 +287,7 @@ module ActiveRecord # :nodoc:
 
               # Make attributes seem real
               alias_method_chain :method_missing, :eav_behavior
+              alias_method_chain :respond_to?, :eav_behavior
 
               private
 
@@ -274,6 +300,7 @@ module ActiveRecord # :nodoc:
           create_attribute_table
           
         end
+        alias_method :has_attributes, :has_eav_behavior
 
       end
 
@@ -282,7 +309,7 @@ module ActiveRecord # :nodoc:
         def self.included(base) # :nodoc:
           base.extend ClassMethods
         end
-
+        
         module ClassMethods
 
           ##
@@ -299,6 +326,10 @@ module ActiveRecord # :nodoc:
                 t.integer eav_options[model][:foreign_key], :null => false
                 t.string eav_options[model][:name_field], :null => false
                 t.string eav_options[model][:value_field], :null => false
+                eav_options[model][:meta_columns].each do |name, column_options|
+                  next if column_options == :virtual
+                  t.column name, column_options[:type], column_options.slice(:limit, :default, :null, :precision, :scale)
+                end
 
                 t.timestamps
               end
@@ -337,7 +368,7 @@ module ActiveRecord # :nodoc:
             eav_attributes(model).nil?
           true
         end
-
+        
         ##
         # Return a list of valid eav attributes for the given model. Return
         # nil if any field is allowed. If you want to say no field is allowed
@@ -347,6 +378,22 @@ module ActiveRecord # :nodoc:
         def eav_attributes(model); nil end
 
         private
+        
+        def is_meta_attribute?(attribute_name, model)
+          meta_name = meta_attribute_name(attribute_name, model)
+          meta_name && is_eav_attribute?(attribute_name.to_s.sub(/_#{meta_name}$/, ''))
+        end
+        
+        def meta_attribute_name(attribute_name, model)
+          model_options = eav_options[model.name]
+          meta_names = model_options[:meta_columns].keys
+          return nil if meta_names.empty?
+          return meta_names.detect {|meta_name| attribute_name =~ /_#{meta_name}$/ }
+        end
+        
+        def base_attribute_name(attribute_name, model)
+          attribute_name.to_s.sub(/_#{meta_attribute_name(attribute_name, model)}$/, '')
+        end
 
         ##
         # Called after validation on update so that eav attributes behave
@@ -359,7 +406,7 @@ module ActiveRecord # :nodoc:
             model, attribute_name = s
             related_attribute = find_related_eav_attribute(model, attribute_name)
             unless related_attribute.nil?
-              if related_attribute.value.nil?
+              if related_attribute.send(eav_options[model.name][:value_field]).nil?
                 eav_related(model).delete(related_attribute)
               else
                 related_attribute.save
@@ -375,14 +422,14 @@ module ActiveRecord # :nodoc:
         def read_attribute_with_eav_behavior(attribute_name)
           attribute_name = attribute_name.to_s
           exec_if_related(attribute_name) do |model|
-            return nil if !@remove_eav_attr.nil? && @remove_eav_attr.any? do |r|
-              r[0] == model && r[1] == attribute_name
-            end
-            
-            value_field = eav_options[model.name][:value_field]
+            model_options = eav_options[model.name]
+            value_field = meta_attribute_name(attribute_name, model) || model_options[:value_field]
             related_attribute = find_related_eav_attribute(model, attribute_name)
             
-            return nil if related_attribute.nil?
+            if related_attribute.nil?
+              return model_options[:meta_columns][value_field][:default] if is_meta_attribute?(attribute_name, model)
+              return nil
+            end
             return related_attribute.send(value_field)
           end
           read_attribute_without_eav_behavior(attribute_name)
@@ -394,7 +441,7 @@ module ActiveRecord # :nodoc:
         def write_attribute_with_eav_behavior(attribute_name, value)
           attribute_name = attribute_name.to_s
           exec_if_related(attribute_name) do |model|
-            value_field = eav_options[model.name][:value_field]
+            value_field = meta_attribute_name(attribute_name, model) || eav_options[model.name][:value_field]
             @save_eav_attr ||= []
             @save_eav_attr << [model, attribute_name]
             related_attribute = find_related_eav_attribute(model, attribute_name)
@@ -436,14 +483,21 @@ module ActiveRecord # :nodoc:
             raise e
           end
         end
+        
+        def respond_to_with_eav_behavior? method, include_private=false
+          respond_to_without_eav_behavior?(method, include_private) || 
+          !/^(created|updated)_(on|at)$/.match(method.to_s) && 
+          exec_if_related(method.to_s.sub(/\=$/, '')) {|model| return true}
+        end
 
         ##
         # Retrieve the related eav attribute object
         #
         def find_related_eav_attribute(model, attribute_name)
           name_field = eav_options[model.name][:name_field]
+          base_name = base_attribute_name(attribute_name, model)
           eav_related(model).to_a.find do |relation| 
-            relation.send(name_field) == attribute_name
+            relation.send(name_field) == base_name
           end
         end
 
@@ -461,7 +515,7 @@ module ActiveRecord # :nodoc:
         def exec_if_related(attribute_name)
           return false if self.class.column_names.include?(attribute_name)
           each_eav_relation do |model|
-            if is_eav_attribute?(attribute_name, model)
+            if is_eav_attribute?(attribute_name, model) || is_meta_attribute?(attribute_name, model)
               yield model
             end
           end
@@ -476,36 +530,6 @@ module ActiveRecord # :nodoc:
 
       end
 
-    end
-  end
-
-  class Base
-
-    ##
-    # Overrides ActiveRecord::Base#attributes=
-    #
-    # Because in version >=2.2.2 of ActiveRecord the behaviour in the attributes
-    # have been changed to throw a NoMethodError if the AR object don't respond
-    # to an attribute setter, we could not use method missing to allow for our
-    # entity-attribute-value behaviour.
-    #
-    def attributes=(new_attributes, guard_protected_attributes = true)
-      return if new_attributes.nil?
-      attributes = new_attributes.dup
-      attributes.stringify_keys!
-
-      multi_parameter_attributes = []
-      attributes = remove_attributes_protected_from_mass_assignment(attributes) if guard_protected_attributes
-
-      attributes.each do |k, v|
-        if k.include?("(")
-          multi_parameter_attributes << [ k, v ]
-        else
-          send(:"#{k}=", v)
-        end
-      end
-
-      assign_multiparameter_attributes(multi_parameter_attributes)
     end
   end
 end

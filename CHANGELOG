@@ -1,3 +1,5 @@
+* Added meta_column functionality [Arni Einarsson]
+
 * First version with base functionality to handle Entity-attribute-value model (EAV) pattern.
 
 * CHANGELOG started [Marcus Wyatt]

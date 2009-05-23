@@ -291,6 +291,7 @@ module ActiveRecord # :nodoc:
 
               private
 
+              alias_method_chain :execute_callstack_for_multiparameter_attributes, :eav_behavior
               alias_method_chain :read_attribute, :eav_behavior
               alias_method_chain :write_attribute, :eav_behavior
 
@@ -348,9 +349,35 @@ module ActiveRecord # :nodoc:
               model = eav_options[key][:class_name]
               self.connection.drop_table eav_options[model][:table_name]
             end
-
           end
-
+        end
+        
+        def execute_callstack_for_multiparameter_attributes_with_eav_behavior(callstack)
+          eav_callstack = {}
+          regular_callstack = callstack.dup
+          callstack.each do |name, values|
+            exec_if_related(name) {|model| eav_callstack[name] = values; regular_callstack.delete(name) }
+          end
+          execute_callstack_for_multiparameter_attributes_without_eav_behavior(regular_callstack)
+          errors = []
+          eav_callstack.each do |name, values|
+            exec_if_related(name) do |model|
+              meta_name = meta_attribute_name(name, model)
+              if values.empty?
+                send("#{meta_name}=", nil)
+              else
+                klass = (model.reflect_on_aggregation(meta_name.to_sym)).klass
+                begin
+                  send("#{name}=", klass.new(*values))
+                rescue => ex
+                  errors << AttributeAssignmentError.new("error on assignment #{values.inspect} to #{name}", ex, name)
+                end
+              end
+            end
+          end
+          unless errors.empty?
+            raise MultiparameterAssignmentErrors.new(errors), "#{errors.size} error(s) on assignment of multiparameter attributes"
+          end
         end
 
         ##
@@ -381,7 +408,7 @@ module ActiveRecord # :nodoc:
         
         def is_meta_attribute?(attribute_name, model)
           meta_name = meta_attribute_name(attribute_name, model)
-          meta_name && is_eav_attribute?(attribute_name.to_s.sub(/_#{meta_name}$/, ''))
+          meta_name && is_eav_attribute?(attribute_name.to_s.sub(/_#{meta_name}$/, ''), model)
         end
         
         def meta_attribute_name(attribute_name, model)
@@ -427,7 +454,7 @@ module ActiveRecord # :nodoc:
             related_attribute = find_related_eav_attribute(model, attribute_name)
             
             if related_attribute.nil?
-              return model_options[:meta_columns][value_field][:default] if is_meta_attribute?(attribute_name, model)
+              return model_options[:meta_columns][value_field][:default] if is_meta_attribute?(attribute_name, model) && model_options[:meta_columns][value_field].is_a?(Hash)
               return nil
             end
             return related_attribute.send(value_field)
@@ -452,8 +479,7 @@ module ActiveRecord # :nodoc:
               unless value.blank?
                 name_field = eav_options[model.name][:name_field]
                 foreign_key = eav_options[model.name][:foreign_key]
-                eav_related(model).build name_field => attribute_name,
-                  value_field => value, foreign_key => self.id
+                eav_related(model).build(name_field => base_attribute_name(attribute_name, model), foreign_key => self.id).send("#{value_field}=", value)
               end
               return value
             else

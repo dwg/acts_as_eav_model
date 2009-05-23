@@ -1,17 +1,17 @@
-ActsAsEavModel
+= ActsAsEavModel
 ==============
 
 ActsAsEavModel allow for the Entity-attribute-value model (EAV), also 
 known as object-attribute-value model and open schema on any of your ActiveRecord
 models. 
 
-= What is Entity-attribute-value model?
+== What is Entity-attribute-value model?
 Entity-attribute-value model (EAV) is a data model that is used in circumstances 
 where the number of attributes (properties, parameters) that can be used to describe 
 a thing (an "entity" or "object") is potentially very vast, but the number that will 
 actually apply to a given entity is relatively modest.
 
-= Typical Problem
+== Typical Problem
 A good example of this is where you need to store
 lots (possible hundreds) of optional attributes on an object. My typical
 reference example is when you have a User object. You want to store the
@@ -58,7 +58,7 @@ Again this seems to much. Again we could add some methods to our model to
 make this simpler but do we want to do this on every model. NO! So instead
 we use this plugin which does everything for us.
 
-= Capabilities
+== Capabilities
 
 The ActsAsEavModel plugin is capable of modeling this problem in a intuitive
 way. Instead of having to deal with a related model you treat all attributes
@@ -78,8 +78,7 @@ The main design goals are:
 * Allow a model to determine what a valid eav attribute is for a given
   related model so our model still can generate a NoMethodError.
 
-Example
-=======
+== Example
 
 Will make the current class have eav behaviour.
 
@@ -94,19 +93,19 @@ Will make the current class have eav behaviour.
 The above example should work even though "intro" and "teaser" are not
 attributes on the Post model.
 
-= Installation
+== Installation
 
-    ./script/plugin install acts_as_eav_model
+    ./script/plugin install git@github.com:dwg/acts_as_eav_model.git
 
-= RUNNING UNIT TESTS
+== RUNNING UNIT TESTS
 
-== Creating the test database
+=== Creating the test database
 
 The test databases will be created from the info specified in test/database.yml.
 Either change that file to match your database or change your database to
 match that file.
 
-== Running with Rake
+=== Running with Rake
 
 The easiest way to run the unit tests is through Rake. By default sqlite3
 will be the database run. Just change your env variable DB to be the database

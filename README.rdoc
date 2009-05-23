@@ -1,5 +1,4 @@
 = ActsAsEavModel
-==============
 
 ActsAsEavModel allow for the Entity-attribute-value model (EAV), also 
 known as object-attribute-value model and open schema on any of your ActiveRecord
@@ -95,7 +94,7 @@ attributes on the Post model.
 
 == Installation
 
-    ./script/plugin install git@github.com:dwg/acts_as_eav_model.git
+ ./script/plugin install git@github.com:dwg/acts_as_eav_model.git
 
 == RUNNING UNIT TESTS
 

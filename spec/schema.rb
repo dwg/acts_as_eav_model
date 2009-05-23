@@ -1,6 +1,4 @@
-require File.join(File.dirname(__FILE__), 'fixtures/document')
-ActiveRecord::Schema.define(:version => 0) do
-
+ActiveRecord::Schema.define(:version => 1) do
   create_table "people", :force => true do |t|
     t.string   "name"
     t.string   "email"
@@ -46,5 +44,4 @@ ActiveRecord::Schema.define(:version => 0) do
     t.string "name", :null => false
     t.string "value", :null => false
   end
-
 end

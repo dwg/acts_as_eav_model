@@ -1,34 +1,37 @@
-$:.unshift(File.dirname(__FILE__) + '/../lib')
-
-ENV["RAILS_ENV"] ||= "test"
-
-require "rubygems"
+require 'rubygems'
 require 'spec'
-require File.expand_path(File.join(File.dirname(__FILE__), "../../../../config/environment"))
-require 'spec/rails'
-require 'active_record/fixtures'
+gem 'activerecord', '>= 2'
+require 'active_record'
 
-begin
-  require 'ruby-debug'
-  Debugger.start
-rescue LoadError
-end
+require "#{File.dirname(__FILE__)}/../init"
 
-require "acts_as_eav_model"
-
-config = YAML::load(IO.read(File.dirname(__FILE__) + '/database.yml'))
-ActiveRecord::Base.logger = Logger.new(File.dirname(__FILE__) + "/debug.log")
-ActiveRecord::Base.establish_connection(config[ENV['DB'] || 'mysql'])
-
-plugin_fixture_path = File.expand_path(File.dirname(__FILE__) + "/fixtures/")
-$LOAD_PATH.unshift(plugin_fixture_path)
-
-Spec::Runner.configure do |config|
-  config.use_transactional_fixtures = true
-  config.use_instantiated_fixtures  = false
-  config.fixture_path = plugin_fixture_path
-end
+ActiveRecord::Base.establish_connection(:adapter=>'sqlite3', :dbfile=>':memory:')
 
 load(File.dirname(__FILE__) + "/schema.rb")
 
-alias :doing :lambda
+class Document < ActiveRecord::Base
+  has_eav_behavior
+
+  def is_eav_attribute?(attr_name, model)
+    attr_name =~ /attr$/
+  end
+end
+
+class Person < ActiveRecord::Base
+  has_eav_behavior :class_name => 'Preference', 
+                   :name_field => :key
+                   
+  has_eav_behavior :class_name => 'PersonContactInfo', 
+                   :foreign_key => :contact_id, 
+                   :fields => %w(phone aim icq)
+
+  def eav_attributes(model)
+    model == Preference ? %w(project_search project_order) : nil
+  end
+end
+
+class Post < ActiveRecord::Base
+  has_eav_behavior
+  
+  validates_presence_of :intro, :message => "can't be blank", :on => :create
+end

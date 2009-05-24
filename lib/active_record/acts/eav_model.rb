@@ -282,7 +282,7 @@ module ActiveRecord # :nodoc:
             exec_if_related(name) do |model|
               meta_name = meta_attribute_name(name, model)
               if values.empty?
-                send("#{meta_name}=", nil)
+                send("#{name}=", nil)
               else
                 klass = (model.reflect_on_aggregation(meta_name.to_sym)).klass
                 begin
@@ -391,10 +391,7 @@ module ActiveRecord # :nodoc:
             @save_eav_attr << [model, attribute_name]
             related_attribute = find_related_eav_attribute(model, attribute_name)
             if related_attribute.nil?
-              # Used to check for nil? but this caused validation
-              # problems that are harder to solve. blank? is probably
-              # not correct but it works well for now.
-              unless value.blank?
+              unless value.nil?
                 name_field = eav_options[model.name][:name_field]
                 foreign_key = eav_options[model.name][:foreign_key]
                 eav_related(model).build(name_field => base_attribute_name(attribute_name, model), foreign_key => self.id).send("#{value_field}=", value)

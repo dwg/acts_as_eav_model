@@ -35,3 +35,24 @@ class Post < ActiveRecord::Base
   
   validates_presence_of :intro, :message => "can't be blank", :on => :create
 end
+
+class User < ActiveRecord::Base
+  has_attributes :meta_columns=>{:private=>{:type=>:boolean, :default=>true}, :multiplyer=>{:type=>:integer, :default=>1}, :multiple=>:virtual}
+end
+
+class Multiple
+  attr_reader :value, :multiplyer
+  
+  def initialize value, multiplyer
+    @multiplyer = multiplyer.to_i
+    @value = value.to_i * @multiplyer
+  end
+  
+  def == other
+    value == other.value && multiplyer == other.multiplyer
+  end
+end
+
+class UserAttribute < ActiveRecord::Base
+  composed_of :multiple, :class_name=>'Multiple', :mapping=>[%w(value value), %w(multiplyer multiplyer)], :allow_nil=>true
+end

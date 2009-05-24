@@ -98,18 +98,19 @@ attributes on the Post model.
 
 == RUNNING UNIT TESTS
 
-=== Creating the test database
+The unit tests are written in rspec so you need to
+ gem install rspec
+to run them.
 
-The test databases will be created from the info specified in test/database.yml.
-Either change that file to match your database or change your database to
-match that file.
+If you want to test coverage you'll also need to
+ gem intall rcov
 
 === Running with Rake
 
-The easiest way to run the unit tests is through Rake. By default sqlite3
-will be the database run. Just change your env variable DB to be the database
-adaptor (specified in database.yml) that you want to use. The database and
-permissions must already be setup but the tables will be created for you
-from schema.rb.
+The easiest way to run the unit tests is through Rake.
+
+ rake spec
+ rake spec:rcov
+ rake spec:rcov:verify
 
 Copyright (c) 2008 Marcus Wyatt, released under the MIT license

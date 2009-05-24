@@ -1,4 +1,7 @@
 ActiveRecord::Schema.define(:version => 1) do
+  create_table "foos", :force => true do |t|
+  end
+  
   create_table "people", :force => true do |t|
     t.string   "name"
     t.string   "email"

@@ -38,6 +38,10 @@ end
 
 class User < ActiveRecord::Base
   has_attributes :meta_columns=>{:private=>{:type=>:boolean, :default=>true}, :multiplyer=>{:type=>:integer, :default=>1}, :multiple=>:virtual}
+  
+  composed_of :money, :mapping=>[%w(virtual_amount amount), %w(virtual_currency currency)]
+  
+  attr_accessor :virtual_amount, :virtual_currency
 end
 
 class Multiple
@@ -55,4 +59,22 @@ end
 
 class UserAttribute < ActiveRecord::Base
   composed_of :multiple, :class_name=>'Multiple', :mapping=>[%w(value value), %w(multiplyer multiplyer)], :allow_nil=>true
+end
+
+class Money
+  attr_reader :amount, :currency
+  
+  def initialize amount, currency
+    @amount = amount
+    @currency = currency
+  end
+  
+  def self.make value
+    amount, currency = value.split(/ /)
+    Money.new amount.to_i, currency
+  end
+  
+  def == other
+    amount == other.amount && currency == other.currency
+  end
 end
